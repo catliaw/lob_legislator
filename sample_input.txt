@@ -1,0 +1,7 @@
+From Name: Joe Schmoe
+From Address Line 1: 185 Berry Street
+From Address Line 2: Suite 170
+From City: San Francisco From State: CA
+From Country: US
+From Zip Code: 94107
+Message: This is a test letter for Lob’s coding challenge. Thank you legislator.
