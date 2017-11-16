@@ -109,6 +109,10 @@ sender_address = lob.Address.create(
 print sender_address
 
 # Create a Lob Address object for the governor (legislator)
+# Ran into some issue with the governor's address and minimum deliverability
+# strictness, so switched US Mail Strictness setting to 'Relaxed'.
+# Cannot change what Google Civic API gives us as the legislator address.
+# If had more time, maybe could use Google Map API to find alternate address.
 governor_address = lob.Address.create(
     name=governor_info["name"],
     address_line1=governor_info["line1"],
@@ -117,26 +121,69 @@ governor_address = lob.Address.create(
     address_state=governor_info["state"],
     address_zip=governor_info["zip"]
 )
+
 print governor_address
 
-# letter_to_governor = lob.Letter.create(
-#     description='Letter to Governor',
-#     to_address=governor_address,
-#     from_address=sender_address,
-#     file="""
-#       <html>
-#         <head>
-#           <style>
-#             @font-face {
-#               font-family: 'Loved by the King';
-#               src: url('https://s3-us-west-2.amazonaws.com/lob-assets/LovedbytheKing.ttf');
-#             }
-#           </style>
-#         </head>
-#         <body><h1>Special offer for {{message}}</h1></body>
-#       </html>""",
-#     merge_variables={
-#         'message': sender_info['message']
-#     },
-#     color=False
-# )
+letter_to_governor = lob.Letter.create(
+    description='Letter to Governor',
+    to_address=governor_address,
+    from_address=sender_address,
+    address_placement='top_first_page',
+    file="""
+        <head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+        <title>Letter to Governor</title>
+        <style>
+          *, *:before, *:after {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+          }
+          body {
+            width: 8.5in;
+            height: 11in;
+            margin: 0;
+            padding: 0;
+            background-color: rgba(0,0,0,0);
+          }
+          .page {
+            page-break-after: always;
+            position: relative;
+            width: 8.5in;
+            height: 11in;
+          }
+          .page-content {
+            position: absolute;
+            width: 8.125in;
+            height: 10.625in;
+            left: 0.1875in;
+            top: 0.1875in;
+          }
+          .text {
+            position: relative;
+            left: .4375in;
+            top: 20px;
+            width: 6in;
+            font-family: 'Open Sans';
+            font-size: 16px;
+          }
+        </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="page-content">
+              <div class="text" style="top: 3in;">
+                {{message}}
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>""",
+    merge_variables={
+        'message': sender_info['message']
+    },
+    color=False
+)
+
+print letter_to_governor
