@@ -18,7 +18,7 @@
     pip install -r requirements.txt
     ```
 
-4.  Then set your Google API and Lob keys as an environment variable locally:
+4.  Then set your Google API and Lob (Test) API keys as an environment variable locally:
 
     ```
     export GOOGLE_CIVIC_KEY='your_Google_API_key'
@@ -30,3 +30,5 @@
     ```
     python send_to_legislator.py input_file.txt
     ```
+
+6.  Preview the letter in the Lob Dashboard > Letters API section.
