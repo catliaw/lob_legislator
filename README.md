@@ -4,8 +4,6 @@
 
 export GOOGLE_CIVIC_KEY='your_Google_API_key'
 
-2.  Run the following code in Terminal/your command line interface:
+2.  Run the following code in Terminal/your command line interface (replacing 'input_file.txt' with the name of your input file):
 
 python send_to_legislator.py input_file.txt
-
-replacing input_file.txt with the name of your input file.
