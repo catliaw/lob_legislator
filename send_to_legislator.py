@@ -54,6 +54,9 @@ From Country, From Zip Code, and Message." % (data[0])
     sender_info[input_key] = input_val
 
 # new address string to input into Google Civic API as parameter later
+# if had more time, would implement Lob's US Address Verification before
+# sending it to the Google Civic API. Can raise an error there if sender's
+# address is not a valid address.
 sender_info['complete_address'] = "%s %s %s %s %s" % (sender_info["from_address_line_1"],
                                                       sender_info["from_address_line_2"],
                                                       sender_info["from_city"],
@@ -106,75 +109,86 @@ sender_address = lob.Address.create(
 # strictness, so switched US Mail Strictness setting to 'Relaxed'.
 # Cannot change what Google Civic API gives us as the legislator address.
 # If had more time, maybe could use Google Map API to find alternate address.
-governor_address = lob.Address.create(
-    name=governor_info["name"],
-    address_line1=governor_info["line1"],
-    address_line2=governor_info["line2"],
-    address_city=governor_info["city"],
-    address_state=governor_info["state"],
-    address_zip=governor_info["zip"]
-)
 
-letter_to_governor = lob.Letter.create(
-    description='Letter to Governor',
-    to_address=governor_address,
-    from_address=sender_address,
-    address_placement='top_first_page',
-    file="""
-        <head>
-        <meta charset="UTF-8">
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-        <title>Letter to Governor</title>
-        <style>
-          *, *:before, *:after {
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-          }
-          body {
-            width: 8.5in;
-            height: 11in;
-            margin: 0;
-            padding: 0;
-            background-color: rgba(0,0,0,0);
-          }
-          .page {
-            page-break-after: always;
-            position: relative;
-            width: 8.5in;
-            height: 11in;
-          }
-          .page-content {
-            position: absolute;
-            width: 8.125in;
-            height: 10.625in;
-            left: 0.1875in;
-            top: 0.1875in;
-          }
-          .text {
-            position: relative;
-            left: .4375in;
-            top: 20px;
-            width: 6in;
-            font-family: 'Open Sans';
-            font-size: 16px;
-          }
-        </style>
-        </head>
-        <body>
-          <div class="page">
-            <div class="page-content">
-              <div class="text" style="top: 3in;">
-                {{message}}
+if "line2" in governor_info:
+    governor_address = lob.Address.create(
+        name=governor_info["name"],
+        address_line1=governor_info["line1"],
+        address_line2=governor_info["line2"],
+        address_city=governor_info["city"],
+        address_state=governor_info["state"],
+        address_zip=governor_info["zip"]
+    )
+else:
+    governor_address = lob.Address.create(
+        name=governor_info["name"],
+        address_line1=governor_info["line1"],
+        address_city=governor_info["city"],
+        address_state=governor_info["state"],
+        address_zip=governor_info["zip"]
+    )
+
+try:
+    letter_to_governor = lob.Letter.create(
+        description='Letter to Governor',
+        to_address=governor_address,
+        from_address=sender_address,
+        address_placement='top_first_page',
+        file="""
+            <head>
+            <meta charset="UTF-8">
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+            <title>Letter to Governor</title>
+            <style>
+              *, *:before, *:after {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+              }
+              body {
+                width: 8.5in;
+                height: 11in;
+                margin: 0;
+                padding: 0;
+                background-color: rgba(0,0,0,0);
+              }
+              .page {
+                page-break-after: always;
+                position: relative;
+                width: 8.5in;
+                height: 11in;
+              }
+              .page-content {
+                position: absolute;
+                width: 8.125in;
+                height: 10.625in;
+                left: 0.1875in;
+                top: 0.1875in;
+              }
+              .text {
+                position: relative;
+                left: .4375in;
+                top: 20px;
+                width: 6in;
+                font-family: 'Open Sans';
+                font-size: 16px;
+              }
+            </style>
+            </head>
+            <body>
+              <div class="page">
+                <div class="page-content">
+                  <div class="text" style="top: 3in;">
+                    {{message}}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </body>
-        </html>""",
-    merge_variables={
-        'message': sender_info['message']
-    },
-    color=False
-)
-
-print letter_to_governor
+            </body>
+            </html>""",
+        merge_variables={
+            'message': sender_info['message']
+        },
+        color=False
+    )
+except lob.error.InvalidRequestError as err:
+    print "Message is too long and exceeds 500 characters: %s" % err
