@@ -34,7 +34,6 @@ governor_info = {}
 with open(sys.argv[1], "r") as f:
     # list of values (strings) with \n\r return-newline removed
     lines = f.read().splitlines()
-print lines
 
 # from input file, read each line and parse info into sender_info dictionary
 for line in lines:
@@ -43,17 +42,16 @@ for line in lines:
     # assumes that all input files formatted the same, like sample content
     if data[0] in input_key_legend:
         input_key = input_key_legend[data[0]]
-        print "yes!"
-    # else:
-    #     # can raise an input error here, since key will not be correct
-    #     input_key = data[0].lower().replace(" ", "_")
-    print input_key
+    else:
+        # can raise an input error here, since key will not be correct
+        exception_message = "%s input label is not correct. Correct input labels \
+are From Name, From Address Line 1,\nFrom Address Line 2,From City, From State, \
+From Country, From Zip Code, and Message." % (data[0])
+        raise Exception(exception_message)
 
     input_val = data[1].strip()
 
     sender_info[input_key] = input_val
-print sender_info
-print sender_info['message']
 
 # new address string to input into Google Civic API as parameter later
 sender_info['complete_address'] = "%s %s %s %s %s" % (sender_info["from_address_line_1"],
@@ -61,8 +59,6 @@ sender_info['complete_address'] = "%s %s %s %s %s" % (sender_info["from_address_
                                                       sender_info["from_city"],
                                                       sender_info["from_state"],
                                                       sender_info["from_zip_code"])
-print sender_info['complete_address']
-
 
 ###################################################################
 # Using the Google Civic API and sender's address, find the local #
@@ -90,8 +86,6 @@ governor_info['name'] = civic_response['officials'][0]['name']
 for key, value in civic_response['officials'][0]['address'][0].iteritems():
     governor_info[key] = value
 
-print governor_info
-
 ##########################################################################
 # Using Lob API, create a letter with sender's name/address,             # 
 # governor's name/address, and message to governor (500 character limit) #
@@ -106,7 +100,6 @@ sender_address = lob.Address.create(
     address_state=sender_info["from_state"],
     address_zip=sender_info["from_zip_code"]
 )
-print sender_address
 
 # Create a Lob Address object for the governor (legislator)
 # Ran into some issue with the governor's address and minimum deliverability
@@ -121,8 +114,6 @@ governor_address = lob.Address.create(
     address_state=governor_info["state"],
     address_zip=governor_info["zip"]
 )
-
-print governor_address
 
 letter_to_governor = lob.Letter.create(
     description='Letter to Governor',
