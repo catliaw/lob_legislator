@@ -12,7 +12,7 @@ google_civic_key = os.environ['GOOGLE_CIVIC_KEY']
 lob_test_api_key = os.environ['LOB_TEST_API_KEY']
 
 lines = []
-input_info = {}
+sender_info = {}
 input_key_legend = {
     "From Name": "from_name",
     "From Address Line 1": "from_address_line_1",
@@ -26,16 +26,22 @@ input_key_legend = {
 
 governor_info = {}
 
+#########################################################################
+# This command line tool allows one argument - a text file that is opened
+# and read. Each line then parsed into a Python dictionary (sender_info)
+#########################################################################
+
 # open and read input file
 with open(sys.argv[1], "r") as f:
     # list of values (strings) with \n\r return-newline removed
     lines = f.read().splitlines()
 print lines
 
-# from input file, read each line and parse info into input_info dictionary
+# from input file, read each line and parse info into sender_info dictionary
 for line in lines:
     data = line.split(':')
 
+    # assumes that all input files formatted the same, like sample content
     if data[0] in input_key_legend:
         input_key = input_key_legend[data[0]]
         print "yes!"
@@ -46,17 +52,22 @@ for line in lines:
 
     input_val = data[1].strip()
 
-    input_info[input_key] = input_val
-print input_info
+    sender_info[input_key] = input_val
+print sender_info
 
 # new address string to input into Google Civic API as parameter later
-input_info['complete_address'] = "%s %s %s %s %s" % (input_info["from_address_line_1"],
-                                                     input_info["from_address_line_2"],
-                                                     input_info["from_city"],
-                                                     input_info["from_state"],
-                                                     input_info["from_zip_code"])
-print input_info['complete_address']
+sender_info['complete_address'] = "%s %s %s %s %s" % (sender_info["from_address_line_1"],
+                                                      sender_info["from_address_line_2"],
+                                                      sender_info["from_city"],
+                                                      sender_info["from_state"],
+                                                      sender_info["from_zip_code"])
+print sender_info['complete_address']
 
+
+#################################################################
+# Using the Google Civic API and sender's address, find the local
+# legislator info (specified to state governor in this function).
+#################################################################
 
 # Create a service object for the correct API, version, authentication key
 service = build('civicinfo', 'v2', developerKey=google_civic_key)
@@ -64,7 +75,7 @@ service = build('civicinfo', 'v2', developerKey=google_civic_key)
 # Format request with specified parameters
 # 'administrativeArea1' means (in the USA) the state-level
 # 'headOfGovernment' means the state governor
-req = service.representatives().representativeInfoByAddress(address=input_info['complete_address'],
+req = service.representatives().representativeInfoByAddress(address=sender_info['complete_address'],
                                                             levels='administrativeArea1',
                                                             roles='headOfGovernment')
 
@@ -81,6 +92,10 @@ for key, value in civic_response['officials'][0]['address'][0].iteritems():
 
 print governor_info
 
+########################################################################
+# Using Lob API, create a letter with sender's name/address, 
+# governor's name/address, and message to governor (500 character limit)
+########################################################################
 
-# assumes that all files formatted the same, like sample content
-# create a 
+
+
